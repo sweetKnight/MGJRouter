@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "MGJRouter"
-  s.version      = "0.8.0"
+  s.version      = "0.9.0"
   s.summary      = "an smart iOS URL Router"
 
   s.homepage     = "http://github.com/mogujie/MGJRouter"
