@@ -40,17 +40,22 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
     [[self sharedIsntance] addURLPattern:URLPattern andHandler:handler];
 }
 
++ (void)deregisterURLPattern:(NSString *)URLPattern
+{
+    [[self sharedIsntance] removeURLPattern:URLPattern];
+}
+
 + (void)openURL:(NSString *)URL
 {
     [self openURL:URL completion:nil];
 }
 
-+ (void)openURL:(NSString *)URL completion:(void (^)(void))completion
++ (void)openURL:(NSString *)URL completion:(void (^)(id result))completion
 {
     [self openURL:URL withUserInfo:nil completion:completion];
 }
 
-+ (void)openURL:(NSString *)URL withUserInfo:(NSDictionary *)userInfo completion:(void (^)(void))completion
++ (void)openURL:(NSString *)URL withUserInfo:(NSDictionary *)userInfo completion:(void (^)(id result))completion
 {
     URL = [URL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSMutableDictionary *parameters = [[self sharedIsntance] extractParametersFromURL:URL];
@@ -182,6 +187,31 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
     }
     if (handler) {
         subRoutes[@"_"] = [handler copy];
+    }
+}
+
+- (void)removeURLPattern:(NSString *)URLPattern
+{
+    NSMutableArray *pathComponents = [NSMutableArray arrayWithArray:[self pathComponentsFromURL:URLPattern]];
+    
+    // 只删除该 pattern 的最后一级
+    if (pathComponents.count >= 1) {
+        // 假如 URLPattern 为 a/b/c, components 就是 @"a.b.c" 正好可以作为 KVC 的 key
+        NSString *components = [pathComponents componentsJoinedByString:@"."];
+        NSMutableDictionary *route = [self.routes valueForKeyPath:components];
+        
+        if (route.count >= 1) {
+            NSString *lastComponent = [pathComponents lastObject];
+            [pathComponents removeLastObject];
+            
+            // 有可能是根 key，这样就是 self.routes 了
+            route = self.routes;
+            if (pathComponents.count) {
+                NSString *componentsWithoutLast = [pathComponents componentsJoinedByString:@"."];
+                route = [self.routes valueForKeyPath:componentsWithoutLast];
+            }
+            [route removeObjectForKey:lastComponent];
+        }
     }
 }
 

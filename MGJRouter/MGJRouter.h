@@ -29,6 +29,13 @@ typedef void (^MGJRouterHandler)(NSDictionary *routerParameters);
 + (void)registerURLPattern:(NSString *)URLPattern toHandler:(MGJRouterHandler)handler;
 
 /**
+ *  取消注册某个 URL Pattern
+ *
+ *  @param URLPattern
+ */
++ (void)deregisterURLPattern:(NSString *)URLPattern;
+
+/**
  *  打开此 URL
  *  会在已注册的 URL -> Handler 中寻找，如果找到，则执行 Handler
  *
@@ -42,7 +49,7 @@ typedef void (^MGJRouterHandler)(NSDictionary *routerParameters);
  *  @param URL        带 Scheme 的 URL，如 mgj://beauty/4
  *  @param completion URL 处理完成后的 callback，完成的判定跟具体的业务相关
  */
-+ (void)openURL:(NSString *)URL completion:(void (^)(void))completion;
++ (void)openURL:(NSString *)URL completion:(void (^)(id result))completion;
 
 /**
  *  打开此 URL，带上附加信息，同时当操作完成时，执行额外的代码
@@ -51,7 +58,7 @@ typedef void (^MGJRouterHandler)(NSDictionary *routerParameters);
  *  @param parameters 附加参数
  *  @param completion URL 处理完成后的 callback，完成的判定跟具体的业务相关
  */
-+ (void)openURL:(NSString *)URL withUserInfo:(NSDictionary *)userInfo completion:(void (^)(void))completion;
++ (void)openURL:(NSString *)URL withUserInfo:(NSDictionary *)userInfo completion:(void (^)(id result))completion;
 
 /**
  *  是否可以打开URL
