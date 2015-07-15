@@ -54,6 +54,11 @@
         detailViewController.selectedSelector = @selector(demoGenerateURL);
         return detailViewController;
     }];
+    
+    [DemoListViewController registerWithTitle:@"取消注册 URL Pattern" handler:^UIViewController *{
+        detailViewController.selectedSelector = @selector(deregisterURLPattern);
+        return detailViewController;
+    }];
 }
 
 - (void)viewDidLoad {
@@ -186,14 +191,14 @@
     
     // 模拟 push 一个 VC
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        void (^completion)() = routerParameters[MGJRouterParameterCompletion];
+        void (^completion)(id result) = routerParameters[MGJRouterParameterCompletion];
         if (completion) {
-            completion();
+            completion(nil);
         }
     });
 }];
 
-[MGJRouter openURL:@"mgj://detail" withUserInfo:nil completion:^{
+[MGJRouter openURL:@"mgj://detail" withUserInfo:nil completion:^(id result){
     [self appendLog:@"Open 结束，我是 Completion Block"];
 }];
 }
@@ -207,6 +212,22 @@
 }];
 
 [MGJRouter openURL:[MGJRouter generateURLWithPattern:TEMPLATE_URL parameters:@[@"Hangzhou"]]];
+}
+
+- (void)deregisterURLPattern
+{
+#define TEMPLATE_URL @"mgj://search/:keyword"
+    
+    [MGJRouter registerURLPattern:TEMPLATE_URL  toHandler:^(NSDictionary *routerParameters) {
+        NSAssert(NO, @"这里不会被触发");
+        NSLog(@"routerParameters[keyword]:%@", routerParameters[@"keyword"]); // Hangzhou
+    }];
+    
+    [MGJRouter deregisterURLPattern:TEMPLATE_URL];
+
+    [MGJRouter openURL:[MGJRouter generateURLWithPattern:TEMPLATE_URL parameters:@[@"Hangzhou"]]];
+    
+    [self appendLog:@"如果没有运行到断点，就表示取消注册成功了"];
 }
 
 @end
