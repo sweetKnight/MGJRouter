@@ -110,6 +110,68 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
     return [items componentsJoinedByString:@""];
 }
 
++ (id)objectForURL:(NSString *)URL withUserInfo:(NSDictionary *)userInfo
+{
+    MGJRouter *router = [MGJRouter sharedIsntance];
+    
+    URL = [URL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    NSMutableDictionary *parameters = [router extractParametersFromURL:URL];
+    MGJRouterObjectHandler handler = parameters[@"block"];
+    
+    if (handler) {
+        if (userInfo) {
+            parameters[MGJRouterParameterUserInfo] = userInfo;
+        }
+        [parameters removeObjectForKey:@"block"];
+        return handler(parameters);
+    }
+    return nil;
+}
+
++ (id)objectForURL:(NSString *)URL
+{
+    return [self objectForURL:URL withUserInfo:nil];
+}
+
++ (void)registerURLPattern:(NSString *)URLPattern toObjectHandler:(MGJRouterObjectHandler)handler
+{
+    [[self sharedIsntance] addURLPattern:URLPattern andObjectHandler:handler];
+}
+
+- (void)addURLPattern:(NSString *)URLPattern andHandler:(MGJRouterHandler)handler
+{
+    NSMutableDictionary *subRoutes = [self addURLPattern:URLPattern];
+    if (handler && subRoutes) {
+        subRoutes[@"_"] = [handler copy];
+    }
+}
+
+- (void)addURLPattern:(NSString *)URLPattern andObjectHandler:(MGJRouterObjectHandler)handler
+{
+    NSMutableDictionary *subRoutes = [self addURLPattern:URLPattern];
+    if (handler && subRoutes) {
+        subRoutes[@"_"] = [handler copy];
+    }
+}
+
+- (NSMutableDictionary *)addURLPattern:(NSString *)URLPattern
+{
+    NSArray *pathComponents = [self pathComponentsFromURL:URLPattern];
+    
+    NSInteger index = 0;
+    NSMutableDictionary* subRoutes = self.routes;
+    
+    while (index < pathComponents.count) {
+        NSString* pathComponent = pathComponents[index];
+        if (![subRoutes objectForKey:pathComponent]) {
+            subRoutes[pathComponent] = [[NSMutableDictionary alloc] init];
+        }
+        subRoutes = subRoutes[pathComponent];
+        index++;
+    }
+    return subRoutes;
+}
+
 #pragma mark - Utils
 
 - (NSMutableDictionary *)extractParametersFromURL:(NSString *)url
@@ -168,26 +230,6 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
     }
     
     return parameters;
-}
-
-- (void)addURLPattern:(NSString *)URLPattern andHandler:(MGJRouterHandler)handler
-{
-    NSArray *pathComponents = [self pathComponentsFromURL:URLPattern];
-    
-    NSInteger index = 0;
-    NSMutableDictionary* subRoutes = self.routes;
-    
-    while (index < pathComponents.count) {
-        NSString* pathComponent = pathComponents[index];
-        if (![subRoutes objectForKey:pathComponent]) {
-            subRoutes[pathComponent] = [[NSMutableDictionary alloc] init];
-        }
-        subRoutes = subRoutes[pathComponent];
-        index++;
-    }
-    if (handler) {
-        subRoutes[@"_"] = [handler copy];
-    }
 }
 
 - (void)removeURLPattern:(NSString *)URLPattern

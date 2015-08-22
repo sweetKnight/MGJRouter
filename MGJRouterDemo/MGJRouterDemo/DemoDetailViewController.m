@@ -56,7 +56,12 @@
     }];
     
     [DemoListViewController registerWithTitle:@"取消注册 URL Pattern" handler:^UIViewController *{
-        detailViewController.selectedSelector = @selector(deregisterURLPattern);
+        detailViewController.selectedSelector = @selector(demoDeregisterURLPattern);
+        return detailViewController;
+    }];
+    
+    [DemoListViewController registerWithTitle:@"同步获取 URL 对应的 Object" handler:^UIViewController *{
+        detailViewController.selectedSelector = @selector(demoObjectForURL);
         return detailViewController;
     }];
 }
@@ -214,7 +219,7 @@
 [MGJRouter openURL:[MGJRouter generateURLWithPattern:TEMPLATE_URL parameters:@[@"Hangzhou"]]];
 }
 
-- (void)deregisterURLPattern
+- (void)demoDeregisterURLPattern
 {
 #define TEMPLATE_URL @"mgj://search/:keyword"
     
@@ -228,6 +233,22 @@
     [MGJRouter openURL:[MGJRouter generateURLWithPattern:TEMPLATE_URL parameters:@[@"Hangzhou"]]];
     
     [self appendLog:@"如果没有运行到断点，就表示取消注册成功了"];
+}
+
+- (void)demoObjectForURL
+{
+    [MGJRouter registerURLPattern:@"mgj://search_top_bar" toObjectHandler:^id(NSDictionary *routerParameters) {
+        UIView *searchTopBar = [[UIView alloc] init];
+        return searchTopBar;
+    }];
+    
+    UIView *searchTopBar = [MGJRouter objectForURL:@"mgj://search_top_bar"];
+    
+    if ([searchTopBar isKindOfClass:[UIView class]]) {
+        [self appendLog:@"同步获取 Object 成功"];
+    } else {
+        [self appendLog:@"同步获取 Object 失败"];
+    }
 }
 
 @end

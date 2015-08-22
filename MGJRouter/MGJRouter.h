@@ -17,6 +17,11 @@ extern NSString *const MGJRouterParameterUserInfo;
  */
 typedef void (^MGJRouterHandler)(NSDictionary *routerParameters);
 
+/**
+ *  需要返回一个 object，配合 objectForURL: 使用
+ */
+typedef id (^MGJRouterObjectHandler)(NSDictionary *routerParameters);
+
 @interface MGJRouter : NSObject
 
 /**
@@ -27,6 +32,16 @@ typedef void (^MGJRouterHandler)(NSDictionary *routerParameters);
  *                    假如注册的 URL 为 mgj://beauty/:id 那么，就会传一个 @{@"id": 4} 这样的字典过来
  */
 + (void)registerURLPattern:(NSString *)URLPattern toHandler:(MGJRouterHandler)handler;
+
+/**
+ *  注册 URLPattern 对应的 ObjectHandler，需要返回一个 object 给调用方
+ *
+ *  @param URLPattern 带上 scheme，如 mgj://beauty/:id
+ *  @param handler    该 block 会传一个字典，包含了注册的 URL 中对应的变量。
+ *                    假如注册的 URL 为 mgj://beauty/:id 那么，就会传一个 @{@"id": 4} 这样的字典过来
+ *                    自带的 key 为 @"url" 和 @"completion" (如果有的话)
+ */
++ (void)registerURLPattern:(NSString *)URLPattern toObjectHandler:(MGJRouterObjectHandler)handler;
 
 /**
  *  取消注册某个 URL Pattern
@@ -59,6 +74,21 @@ typedef void (^MGJRouterHandler)(NSDictionary *routerParameters);
  *  @param completion URL 处理完成后的 callback，完成的判定跟具体的业务相关
  */
 + (void)openURL:(NSString *)URL withUserInfo:(NSDictionary *)userInfo completion:(void (^)(id result))completion;
+
+/**
+ * 查找谁对某个 URL 感兴趣，如果有的话，返回一个 object
+ *
+ *  @param URL
+ */
++ (id)objectForURL:(NSString *)URL;
+
+/**
+ * 查找谁对某个 URL 感兴趣，如果有的话，返回一个 object
+ *
+ *  @param URL
+ *  @param userInfo
+ */
++ (id)objectForURL:(NSString *)URL withUserInfo:(NSDictionary *)userInfo;
 
 /**
  *  是否可以打开URL
