@@ -1,6 +1,16 @@
 # MGJRouter
 一个高效/灵活的 iOS URL Router
 
+## 2015-08-22 更新
+
+### 添加了同步获取 Object 的方法
+
+有些场景我们可能需要根据 URL 获取某个 Object，所以就添加了这个方法
+
+```objc
+UIView *searchTopBar = [MGJRouter objectForURL:@"search_top_bar"];
+```
+
 ## 为什么要再造一个轮子？
 已经有几款不错的 Router 了，如 [JLRoutes](https://github.com/joeldev/JLRoutes), [HHRouter](https://github.com/Huohua/HHRouter), 但细看了下之后发现，还是不太满足需求。
 
@@ -13,7 +23,7 @@ HHRouter 的 URL 查找是基于匹配，所以会更高效，MGJRouter 也是�
 ## 安装
 
 ```
-pod 'MGJRouter', '~>0.8.0'
+pod 'MGJRouter', '~>0.9.0'
 ```
 
 ## 使用姿势
@@ -74,7 +84,7 @@ extern NSString *const MGJRouterParameterUserInfo;
 [MGJRouter registerURLPattern:@"mgj://" toHandler:^(NSDictionary *routerParameters) {
     NSLog(@"没有人处理该 URL，就只能 fallback 到这里了");
 }];
-    
+
 [MGJRouter openURL:@"mgj://search/travel/china?has_travelled=0"];
 ```
 
@@ -83,7 +93,7 @@ extern NSString *const MGJRouterParameterUserInfo;
 ```objc
 [MGJRouter registerURLPattern:@"mgj://detail" toHandler:^(NSDictionary *routerParameters) {
     NSLog(@"匹配到了 url, 一会会执行 Completion Block");
-    
+
     // 模拟 push 一个 VC
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         void (^completion)() = routerParameters[MGJRouterParameterCompletion];
@@ -112,7 +122,7 @@ URL 的处理一不小心，就容易散落在项目的各个角落，不容易�
 
 ```objc
 #define TEMPLATE_URL @"mgj://search/:keyword"
-    
+
 [MGJRouter registerURLPattern:TEMPLATE_URL  toHandler:^(NSDictionary *routerParameters) {
     NSLog(@"routerParameters[keyword]:%@", routerParameters[@"keyword"]); // Hangzhou
 }];
