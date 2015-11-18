@@ -89,25 +89,46 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
 + (NSString *)generateURLWithPattern:(NSString *)pattern parameters:(NSArray *)parameters
 {
     NSInteger startIndexOfColon = 0;
-    NSMutableArray *items = [[NSMutableArray alloc] init];
-    NSInteger parameterIndex = 0;
+    
+    NSMutableArray *placeholders = [NSMutableArray array];
+    
+    NSArray *specialCharacters = @[@"/", @"?", @"&", @"."];
+    
+    BOOL (^checkIfContainsSpecialCharacter)(NSString *checkedString) = ^BOOL(NSString *checkedString) {
+        NSCharacterSet *specialCharactersSet = [NSCharacterSet characterSetWithCharactersInString:[specialCharacters componentsJoinedByString:@""]];
+        return [checkedString rangeOfCharacterFromSet:specialCharactersSet].location != NSNotFound;
+    };
     
     for (int i = 0; i < pattern.length; i++) {
         NSString *character = [NSString stringWithFormat:@"%c", [pattern characterAtIndex:i]];
         if ([character isEqualToString:@":"]) {
             startIndexOfColon = i;
         }
-        if (([@[@"/", @"?", @"&"] containsObject:character] || (i == pattern.length - 1 && startIndexOfColon) ) && startIndexOfColon) {
-            if (i > (startIndexOfColon + 1)) {
-                [items addObject:[NSString stringWithFormat:@"%@%@", [pattern substringWithRange:NSMakeRange(0, startIndexOfColon)], parameters[parameterIndex++]]];
-                pattern = [pattern substringFromIndex:i];
-                i = 0;
+        if ([specialCharacters containsObject:character] && i > (startIndexOfColon + 1) && startIndexOfColon) {
+            NSRange range = NSMakeRange(startIndexOfColon, i - startIndexOfColon);
+            NSString *placeholder = [pattern substringWithRange:range];
+            if (!checkIfContainsSpecialCharacter(placeholder)) {
+                [placeholders addObject:placeholder];
+                startIndexOfColon = 0;
             }
-            startIndexOfColon = 0;
+        }
+        if (i == pattern.length - 1 && startIndexOfColon) {
+            NSRange range = NSMakeRange(startIndexOfColon, i - startIndexOfColon + 1);
+            NSString *placeholder = [pattern substringWithRange:range];
+            if (!checkIfContainsSpecialCharacter(placeholder)) {
+                [placeholders addObject:placeholder];
+            }
         }
     }
     
-    return [items componentsJoinedByString:@""];
+    __block NSString *parsedResult = pattern;
+    
+    [placeholders enumerateObjectsUsingBlock:^(NSString *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        idx = parameters.count > idx ? idx : parameters.count - 1;
+        parsedResult = [parsedResult stringByReplacingOccurrencesOfString:obj withString:parameters[idx]];
+    }];
+    
+    return parsedResult;
 }
 
 + (id)objectForURL:(NSString *)URL withUserInfo:(NSDictionary *)userInfo
