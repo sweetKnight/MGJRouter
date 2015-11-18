@@ -10,10 +10,12 @@
 #import <objc/runtime.h>
 
 static NSString * const MGJ_ROUTER_WILDCARD_CHARACTER = @"~";
+static NSString *specialCharacters = @"/?&.";
 
 NSString *const MGJRouterParameterURL = @"MGJRouterParameterURL";
 NSString *const MGJRouterParameterCompletion = @"MGJRouterParameterCompletion";
 NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
+
 
 @interface MGJRouter ()
 /**
@@ -92,22 +94,15 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
     
     NSMutableArray *placeholders = [NSMutableArray array];
     
-    NSArray *specialCharacters = @[@"/", @"?", @"&", @"."];
-    
-    BOOL (^checkIfContainsSpecialCharacter)(NSString *checkedString) = ^BOOL(NSString *checkedString) {
-        NSCharacterSet *specialCharactersSet = [NSCharacterSet characterSetWithCharactersInString:[specialCharacters componentsJoinedByString:@""]];
-        return [checkedString rangeOfCharacterFromSet:specialCharactersSet].location != NSNotFound;
-    };
-    
     for (int i = 0; i < pattern.length; i++) {
         NSString *character = [NSString stringWithFormat:@"%c", [pattern characterAtIndex:i]];
         if ([character isEqualToString:@":"]) {
             startIndexOfColon = i;
         }
-        if ([specialCharacters containsObject:character] && i > (startIndexOfColon + 1) && startIndexOfColon) {
+        if ([specialCharacters rangeOfString:character].location != NSNotFound && i > (startIndexOfColon + 1) && startIndexOfColon) {
             NSRange range = NSMakeRange(startIndexOfColon, i - startIndexOfColon);
             NSString *placeholder = [pattern substringWithRange:range];
-            if (!checkIfContainsSpecialCharacter(placeholder)) {
+            if (![self checkIfContainsSpecialCharacter:placeholder]) {
                 [placeholders addObject:placeholder];
                 startIndexOfColon = 0;
             }
@@ -115,7 +110,7 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
         if (i == pattern.length - 1 && startIndexOfColon) {
             NSRange range = NSMakeRange(startIndexOfColon, i - startIndexOfColon + 1);
             NSString *placeholder = [pattern substringWithRange:range];
-            if (!checkIfContainsSpecialCharacter(placeholder)) {
+            if (![self checkIfContainsSpecialCharacter:placeholder]) {
                 [placeholders addObject:placeholder];
             }
         }
@@ -221,7 +216,20 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
             } else if ([key hasPrefix:@":"]) {
                 found = YES;
                 subRoutes = subRoutes[key];
-                parameters[[key substringFromIndex:1]] = pathComponent;
+                NSString *newKey = [key substringFromIndex:1];
+                NSString *newPathComponent = pathComponent;
+                // 再做一下特殊处理，比如 :id.html -> :id
+                if ([self.class checkIfContainsSpecialCharacter:key]) {
+                    NSCharacterSet *specialCharacterSet = [NSCharacterSet characterSetWithCharactersInString:specialCharacters];
+                    NSRange range = [key rangeOfCharacterFromSet:specialCharacterSet];
+                    if (range.location != NSNotFound) {
+                        // 把 pathComponent 后面的部分也去掉
+                        newKey = [newKey substringToIndex:range.location - 1];
+                        NSString *suffixToStrip = [key substringFromIndex:range.location];
+                        newPathComponent = [newPathComponent stringByReplacingOccurrencesOfString:suffixToStrip withString:@""];
+                    }
+                }
+                parameters[newKey] = newPathComponent;
                 break;
             }
         }
@@ -308,6 +316,13 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
         _routes = [[NSMutableDictionary alloc] init];
     }
     return _routes;
+}
+
+#pragma mark - Utils
+
++ (BOOL)checkIfContainsSpecialCharacter:(NSString *)checkedString {
+    NSCharacterSet *specialCharactersSet = [NSCharacterSet characterSetWithCharactersInString:specialCharacters];
+    return [checkedString rangeOfCharacterFromSet:specialCharactersSet].location != NSNotFound;
 }
 
 @end
