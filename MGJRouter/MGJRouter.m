@@ -27,7 +27,7 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
 
 @implementation MGJRouter
 
-+ (instancetype)sharedIsntance
++ (instancetype)sharedInstance
 {
     static MGJRouter *instance = nil;
     static dispatch_once_t onceToken;
@@ -39,12 +39,12 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
 
 + (void)registerURLPattern:(NSString *)URLPattern toHandler:(MGJRouterHandler)handler
 {
-    [[self sharedIsntance] addURLPattern:URLPattern andHandler:handler];
+    [[self sharedInstance] addURLPattern:URLPattern andHandler:handler];
 }
 
 + (void)deregisterURLPattern:(NSString *)URLPattern
 {
-    [[self sharedIsntance] removeURLPattern:URLPattern];
+    [[self sharedInstance] removeURLPattern:URLPattern];
 }
 
 + (void)openURL:(NSString *)URL
@@ -60,7 +60,7 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
 + (void)openURL:(NSString *)URL withUserInfo:(NSDictionary *)userInfo completion:(void (^)(id result))completion
 {
     URL = [URL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    NSMutableDictionary *parameters = [[self sharedIsntance] extractParametersFromURL:URL];
+    NSMutableDictionary *parameters = [[self sharedInstance] extractParametersFromURL:URL];
     
     [parameters enumerateKeysAndObjectsUsingBlock:^(id key, NSString *obj, BOOL *stop) {
         if ([obj isKindOfClass:[NSString class]]) {
@@ -85,7 +85,7 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
 
 + (BOOL)canOpenURL:(NSString *)URL
 {
-    return [[self sharedIsntance] extractParametersFromURL:URL] ? YES : NO;
+    return [[self sharedInstance] extractParametersFromURL:URL] ? YES : NO;
 }
 
 + (NSString *)generateURLWithPattern:(NSString *)pattern parameters:(NSArray *)parameters
@@ -128,7 +128,7 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
 
 + (id)objectForURL:(NSString *)URL withUserInfo:(NSDictionary *)userInfo
 {
-    MGJRouter *router = [MGJRouter sharedIsntance];
+    MGJRouter *router = [MGJRouter sharedInstance];
     
     URL = [URL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSMutableDictionary *parameters = [router extractParametersFromURL:URL];
@@ -151,7 +151,7 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
 
 + (void)registerURLPattern:(NSString *)URLPattern toObjectHandler:(MGJRouterObjectHandler)handler
 {
-    [[self sharedIsntance] addURLPattern:URLPattern andObjectHandler:handler];
+    [[self sharedInstance] addURLPattern:URLPattern andObjectHandler:handler];
 }
 
 - (void)addURLPattern:(NSString *)URLPattern andHandler:(MGJRouterHandler)handler
