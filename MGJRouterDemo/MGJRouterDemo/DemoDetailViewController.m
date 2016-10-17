@@ -139,6 +139,20 @@
 
 #pragma mark - Demos
 
+- (void)demoFallback
+{
+    [MGJRouter registerURLPattern:@"mgj://" toHandler:^(NSDictionary *routerParameters) {
+        [self appendLog:@"匹配到了 url，以下是相关信息"];
+        [self appendLog:[NSString stringWithFormat:@"routerParameters:%@", routerParameters]];
+    }];
+    
+    [MGJRouter registerURLPattern:@"mgj://foo/bar/none/exists" toHandler:^(NSDictionary *routerParameters) {
+        [self appendLog:@"it should be triggered"];
+    }];
+    
+    [MGJRouter openURL:@"mgj://foo/bar"];
+}
+
 - (void)demoBasicUsage
 {
     [MGJRouter registerURLPattern:@"mgj://foo/bar" toHandler:^(NSDictionary *routerParameters) {
@@ -177,16 +191,6 @@
     }];
     
     [MGJRouter openURL:@"mgj://search/bicycle?color=red"];
-}
-
-- (void)demoFallback
-{
-    [MGJRouter registerURLPattern:@"mgj://" toHandler:^(NSDictionary *routerParameters) {
-        [self appendLog:@"匹配到了 url，以下是相关信息"];
-        [self appendLog:[NSString stringWithFormat:@"routerParameters:%@", routerParameters]];
-    }];
-    
-    [MGJRouter openURL:@"mgj://search/travel/china?has_travelled=0"];
 }
 
 - (void)demoCompletion

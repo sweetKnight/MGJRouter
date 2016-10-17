@@ -199,9 +199,9 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
     NSMutableDictionary* subRoutes = self.routes;
     NSArray* pathComponents = [self pathComponentsFromURL:url];
     
+    BOOL found = NO;
     // borrowed from HHRouter(https://github.com/Huohua/HHRouter)
     for (NSString* pathComponent in pathComponents) {
-        BOOL found = NO;
         
         // 对 key 进行排序，这样可以把 ~ 放到最后
         NSArray *subRoutesKeys =[subRoutes.allKeys sortedArrayUsingComparator:^NSComparisonResult(NSString *obj1, NSString *obj2) {
@@ -233,6 +233,7 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
                 break;
             }
         }
+        
         // 如果没有找到该 pathComponent 对应的 handler，则以上一层的 handler 作为 fallback
         if (!found && !subRoutes[@"_"]) {
             return nil;
