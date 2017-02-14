@@ -296,7 +296,7 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
         [pathComponents addObject:pathSegments[0]];
         
         // 如果只有协议，那么放一个占位符
-        if ((pathSegments.count == 2 && ((NSString *)pathSegments[1]).length) || pathSegments.count < 2) {
+        if ((pathSegments.count >= 2 && ((NSString *)pathSegments[1]).length) || pathSegments.count < 2) {
             [pathComponents addObject:MGJ_ROUTER_WILDCARD_CHARACTER];
         }
         
