@@ -289,6 +289,7 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
 
 - (NSArray*)pathComponentsFromURL:(NSString*)URL
 {
+
     NSMutableArray *pathComponents = [NSMutableArray array];
     if ([URL rangeOfString:@"://"].location != NSNotFound) {
         NSArray *pathSegments = [URL componentsSeparatedByString:@"://"];
@@ -296,13 +297,12 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
         [pathComponents addObject:pathSegments[0]];
         
         // 如果只有协议，那么放一个占位符
-        if ((pathSegments.count >= 2 && ((NSString *)pathSegments[1]).length) || pathSegments.count < 2) {
+        URL = pathSegments.lastObject;
+        if (!URL.length) {
             [pathComponents addObject:MGJ_ROUTER_WILDCARD_CHARACTER];
         }
-        
-        URL = [URL substringFromIndex:[URL rangeOfString:@"://"].location + 3];
     }
-    
+
     for (NSString *pathComponent in [[NSURL URLWithString:URL] pathComponents]) {
         if ([pathComponent isEqualToString:@"/"]) continue;
         if ([[pathComponent substringToIndex:1] isEqualToString:@"?"]) break;
