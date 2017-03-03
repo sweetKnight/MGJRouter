@@ -173,17 +173,14 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
 - (NSMutableDictionary *)addURLPattern:(NSString *)URLPattern
 {
     NSArray *pathComponents = [self pathComponentsFromURL:URLPattern];
-    
-    NSInteger index = 0;
+
     NSMutableDictionary* subRoutes = self.routes;
     
-    while (index < pathComponents.count) {
-        NSString* pathComponent = pathComponents[index];
+    for (NSString* pathComponent in pathComponents) {
         if (![subRoutes objectForKey:pathComponent]) {
             subRoutes[pathComponent] = [[NSMutableDictionary alloc] init];
         }
         subRoutes = subRoutes[pathComponent];
-        index++;
     }
     return subRoutes;
 }
@@ -241,20 +238,12 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
     }
     
     // Extract Params From Query.
-    NSArray* pathInfo = [url componentsSeparatedByString:@"?"];
-    if (pathInfo.count > 1) {
-        NSString* parametersString = [pathInfo objectAtIndex:1];
-        NSArray* paramStringArr = [parametersString componentsSeparatedByString:@"&"];
-        for (NSString* paramString in paramStringArr) {
-            NSArray* paramArr = [paramString componentsSeparatedByString:@"="];
-            if (paramArr.count > 1) {
-                NSString* key = [paramArr objectAtIndex:0];
-                NSString* value = [paramArr objectAtIndex:1];
-                parameters[key] = value;
-            }
-        }
-    }
+    NSArray<NSURLQueryItem *> *queryItems = [[NSURLComponents alloc] initWithURL:[[NSURL alloc] initWithString:url] resolvingAgainstBaseURL:false].queryItems;
     
+    for (NSURLQueryItem *item in queryItems) {
+        parameters[item.name] = item.value;
+    }
+
     if (subRoutes[@"_"]) {
         parameters[@"block"] = [subRoutes[@"_"] copy];
     }
