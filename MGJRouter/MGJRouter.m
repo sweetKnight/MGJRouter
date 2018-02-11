@@ -228,7 +228,9 @@ NSString *const MGJRouterParameterUserInfo = @"MGJRouterParameterUserInfo";
                 }
                 parameters[newKey] = newPathComponent;
                 break;
-            }
+            } else {
+                found = NO;
+              }
         }
         
         // 如果没有找到该 pathComponent 对应的 handler，则以上一层的 handler 作为 fallback
